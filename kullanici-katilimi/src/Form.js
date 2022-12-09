@@ -6,20 +6,21 @@ const schema = yup.object().shape({
     user: yup
     .string()
     .required("İsim-Soyisim Gerekli")
-    .max(45,"İsim-Soyisim Çok Uzun"),
+    .max(45,"İsim-Soyisim Çok Uzun Arap yada Brezilyalımısın"),
 
     email: yup
     .string()
-    .email("Mail Fortmati Uygun Degil")
+    .email("email formati uygun değil")
     .required("e-mail gerekli"),
+    
 
     password: yup
     .string()
     .required("Sifre Gerekli")
-    .min(8,"Şifre 8 Karakterden Uzun Olmalı")
+    .min(9,"Şifre 8 Karakterden Uzun Olmalı")
     .max(20,"Şifre 20 Karakterden Fazla Olamaz"),
     
-    agree: yup.mixed().oneOf([true], "Tüm Veriler Tamamlanmalı")
+    agree: yup.mixed().oneOf([true], "Check zorunlu")
 
   });
 
@@ -32,15 +33,28 @@ const schema = yup.object().shape({
     });
     const [errors, setErrors] = useState({
       user: "",
-      star: "",
+      email: "",
       agree: "",
       password: ""
     });
+    const [traFrom, setTraForm] = useState({
+      user: "",
+      email: "",
+      agree: false,
+      password: ""
+    });
+
+    const [acceptForms, setAcceptForms] = useState([])
+
     const [disabled, setDisabled] = useState(true);
     const [userId, setUserId] = useState("");
+
+    
   
     useEffect(() => {
-      schema.isValid(form).then((valid) => setDisabled(!valid));
+      schema
+      .isValid(form)
+      .then((valid) => setDisabled(!valid));
     }, [form]);
   
     const checkFormErrors = (name, value) => {
@@ -87,24 +101,28 @@ const schema = yup.object().shape({
         .post("https://reqres.in/api/user", newUser)
         .then((res) => {
           setUserId(res.data.id);
-  
+          
+          setTraForm(form);
+          let arr=acceptForms;
+          arr.push(form);
+          setAcceptForms(arr);
+
+
           setForm({
             user: "",
-            star: "",
+            email: "",
             agree: false,
             password: ""
           });
         })
-        .catch((err) => {
-          debugger;
-        });
+        
     };
   
     return (
       <div className="App">
         <div style={{ color: "red" }}>
           <div>{errors.user}</div>
-          <div>{errors.star}</div>
+          <div>{errors.email}</div>
           <div>{errors.password}</div>
           <div>{errors.agree}</div>
         </div>
@@ -128,7 +146,7 @@ const schema = yup.object().shape({
                 type="password"
                 id="password"
                 name="password"
-                value={form.sifre}
+                value={form.password}
                 placeholder="Sifre Giriniz"
                 onChange={handleChange}
               />
@@ -137,11 +155,11 @@ const schema = yup.object().shape({
           <p>
               <label htmlFor="email">e-Mail: </label>
               <input
-                type="email"
+                type="text"
                 id="email"
                 name="email"
                 value={form.email}
-                placeholder="email Giriniz"
+                placeholder="e-Mail Giriniz"
                 onChange={handleChange}
               />
           </p>
@@ -157,8 +175,46 @@ const schema = yup.object().shape({
             />
           </p>
           <p>
-            <input type="submit" disabled={disabled} />
+            <input type="submit" value={"gonder"} disabled={disabled} />
           </p>
+
+        <p>
+          {
+            userId !== "" && 
+            (
+              <div style={{ color: "blue" }}>
+                <h3 style={{ color: "red" }}>ID: {userId} olarak user gonderildi</h3>
+                <p>İsim Soyisim:{traFrom.user}</p>
+                <p>e-Mail:{traFrom.email}</p>
+                <p>Sifre: {traFrom.password}</p>
+              </div>
+            )
+            
+          }
+        </p>
+
+        <p>
+          
+          <div>
+          {
+            acceptForms.length !==0 && 
+            (   
+              <div>
+                <h3>Kayıtlılar</h3>
+                {
+                  acceptForms.map((form, index) => (
+                    <div>
+                      <strong>{index+1}.Kullanıcı</strong>
+                      <p>İsim {form.user}</p>
+                      <p>e-Mail:{form.email}</p>
+                    </div>
+                  ))
+                }
+              </div>
+            )
+          }
+          </div>
+        </p>
         </form>
       </div>
     );
